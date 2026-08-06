@@ -1,0 +1,8 @@
+# 数学建模工作流 Python 依赖（纯 pip venv，见 scripts/setup_env.sh）
+# 背景：
+#   - 机器上 python 命令是 Windows Store 假别名，不可用
+#   - Anaconda site-packages 当前用户不可写；且其 scipy/matplotlib 与 ortools DLL 冲突(WinError 127)
+#   - 解法：纯 venv 统一用 pip 安装，避免 DLL 冲突
+# 本清单仅作记录；setup_env.sh 用完整安装命令（含版本锁定）以保证兼容
+ortools==9.15.6755
+PyMuPDF
