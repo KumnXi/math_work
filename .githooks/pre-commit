@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# 提交前敏感信息检查（git pre-commit 钩子）
+# 通过 `git config core.hooksPath .githooks` 启用；init_project.sh 会自动注册。
+# 绕过：git commit --no-verify
+set -u
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+# 找到项目 Python（禁止裸 python —— Windows Store 假别名）
+PY=""
+if [ -x "$ROOT/.venv/Scripts/python.exe" ]; then
+    PY="$ROOT/.venv/Scripts/python.exe"
+elif command -v python3 >/dev/null 2>&1; then
+    PY="python3"
+elif command -v py >/dev/null 2>&1; then
+    PY="py -3"
+fi
+if [ -z "$PY" ]; then
+    echo "⚠️  pre-commit: 未找到可用 Python，跳过敏感信息检查"
+    exit 0
+fi
+
+"$PY" "$ROOT/scripts/check_secrets.py" --staged
+rc=$?
+if [ $rc -ne 0 ]; then
+    echo ""
+    echo "❌ 提交被拦截：疑似敏感信息。确认为误报后可用 --no-verify 强制提交。"
+    exit 1
+fi
+exit 0

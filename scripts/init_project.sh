@@ -8,6 +8,9 @@ cd "$PROJECT_DIR"
 echo "==> git init ..."
 git init -q 2>/dev/null || echo "   已初始化或忽略"
 
+echo "==> 注册 pre-commit 敏感信息检查钩子 ..."
+git config core.hooksPath .githooks && echo "   已启用 .githooks/pre-commit"
+
 echo "==> 检查 machine.json ..."
 if [ ! -f config/machine.json ]; then
     /d/Anaconda3/python.exe - <<'PY'
