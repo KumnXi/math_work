@@ -12,6 +12,7 @@
 2. LaTeX 编译用 `$LATEXMK_EXE` / `$XELATEX_EXE`（MiKTeX，`D:\MiKTeX\miktex\bin\x64\`）。
 3. 本项目路径含空格（`D:\Jupyter code\math_work`），**shell 命令一律双引号包裹**路径；Python 内用 `pathlib`。
 4. 控制台为 GBK 编码，运行 Python 时若输出中文需 `PYTHONIOENCODING=utf-8`（settings.json 已设置）或脚本内 `sys.stdout.reconfigure(encoding='utf-8')`。
+5. **提交前必须做敏感信息检查**：仓库已注册 pre-commit 钩子（`.githooks/pre-commit` → `scripts/check_secrets.py`），每次 `git commit` 自动扫描暂存区密钥/凭据，命中即拦截。任何人（含 Claude）**不得用 `git commit --no-verify` 绕过**，除非已人工确认命中确为误报；误报应在 `scripts/check_secrets.py` 的 `ALLOW_SUBSTRINGS` 中补充白名单。`config/llm.json`、`config/machine.json`、`.claude/settings*.json` 含密钥/路径凭据，严禁入库。
 
 ## 目录约定
 
