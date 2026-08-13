@@ -14,6 +14,7 @@ import pathlib
 import re
 import subprocess
 import sys
+import time
 
 from . import config
 
@@ -31,6 +32,9 @@ import preprocess               # noqa: E402  eda_report(df)
 STAGES = ["P1", "P2", "P3", "P4", "P5", "P6"]
 STAGE_NAMES = {"P1": "读题分析", "P2": "建模", "P3": "编程求解",
                "P4": "出图", "P5": "论文写作", "P6": "验收"}
+
+# 阶段失败自动重试次数（回滚 output/ 到阶段前快照后重跑，应对网络瞬断等瞬态错误）
+MAX_STAGE_RETRY = 3
 
 # 每阶段默认的 claude -p 配置
 STAGE_CONFIG = {
@@ -93,6 +97,61 @@ def _gate(task_id: str, stage: str) -> bool:
     rc, _, _err = run_script(
         [_py_exe(), str(SCRIPTS / "verify_manifest.py"), "gate", str(p), stage], p)
     return rc == 0
+
+
+# 阶段失败回退：快照 + 回滚，允许自动重试（如 Claude Code 网络瞬断）
+# 排除进程日志/状态文件——它们是审计与运行状态，不参与回滚。
+_SNAP_EXCLUDE = {"task_state.json", "claude_run.log"}
+
+
+def _snapshot_output(out_dir: pathlib.Path) -> dict[str, bytes]:
+    """快照 output/ 全部文件内容（排除状态/日志），供失败回滚。"""
+    snap: dict[str, bytes] = {}
+    if not out_dir.exists():
+        return snap
+    for root, _dirs, files in os.walk(out_dir):
+        root_p = pathlib.Path(root)
+        for fn in files:
+            if fn in _SNAP_EXCLUDE:
+                continue
+            p = root_p / fn
+            try:
+                snap[p.relative_to(out_dir).as_posix()] = p.read_bytes()
+            except OSError:
+                pass      # 文件被并发删除，忽略
+    return snap
+
+
+def _rollback_output(out_dir: pathlib.Path, snap: dict[str, bytes]) -> int:
+    """把 output/ 恢复到快照状态：删除新增文件、还原被改动文件。返回处理文件数。"""
+    if not out_dir.exists():
+        return 0
+    restored = 0
+    for root, _dirs, files in os.walk(out_dir):
+        root_p = pathlib.Path(root)
+        for fn in files:
+            if fn in _SNAP_EXCLUDE:
+                continue
+            p = root_p / fn
+            rel = p.relative_to(out_dir).as_posix()
+            if rel not in snap:
+                p.unlink(missing_ok=True)            # 本次新增 → 删除
+                restored += 1
+            else:
+                try:
+                    if p.read_bytes() != snap[rel]:  # 本次被改动 → 还原
+                        p.write_bytes(snap[rel])
+                        restored += 1
+                except OSError:
+                    pass
+    # 清理删除产生的空目录（含 .snapshot 之类临时目录）
+    for root, dirs, _files in os.walk(out_dir, topdown=False):
+        for dn in dirs:
+            try:
+                (pathlib.Path(root) / dn).rmdir()
+            except OSError:
+                pass
+    return restored
 
 
 # ---------- Claude Code 调用 ----------
@@ -611,8 +670,27 @@ def run_task(task_id: str, from_stage: str = "P1") -> None:
         try:
             if not _gate(task_id, stage):
                 raise RuntimeError(f"{stage} 前置门禁未通过（前一阶段产物缺失或被改动）")
-            fn = globals()[f"stage_{stage.lower()}"]
-            fn(task_id, state)
+            # 快照阶段开始前 output/，供失败回滚后自动重试
+            out_dir = d / "output"
+            snap = _snapshot_output(out_dir)
+            last_err: Exception | None = None
+            for attempt in range(1, MAX_STAGE_RETRY + 1):
+                try:
+                    fn = globals()[f"stage_{stage.lower()}"]
+                    fn(task_id, state)
+                    last_err = None
+                    break
+                except Exception as e:      # noqa: BLE001
+                    last_err = e
+                    if attempt < MAX_STAGE_RETRY:
+                        n = _rollback_output(out_dir, snap)
+                        log(state, d,
+                            f"⚠️ {stage} 第 {attempt} 次失败：{e}"
+                            f"（已回滚 {n} 个文件，第 {attempt + 1}/{MAX_STAGE_RETRY} 次重试）",
+                            "error")
+                        time.sleep(5)
+            if last_err is not None:
+                raise last_err
         except Exception as e:      # noqa: BLE001
             state["status"] = "failed"
             state["error"] = str(e)
