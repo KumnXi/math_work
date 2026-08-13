@@ -6,3 +6,9 @@
 # 本清单仅作记录；setup_env.sh 用完整安装命令（含版本锁定）以保证兼容
 ortools==9.15.6755
 PyMuPDF
+fastapi
+uvicorn
+python-multipart
+requests
+# Word 完整版论文：main.tex → main.docx（tools/generate_docx.py，pandoc 转换，公式为原生 OMML）
+# pandoc 为系统级工具，非 pip：winget install --id JohnMacFarlane.Pandoc，路径登记 config/machine.json PANDOC_EXE

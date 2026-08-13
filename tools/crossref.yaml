@@ -1,0 +1,11 @@
+# pandoc-crossref 中文前缀配置（配合 pandoc 版 generate_docx.py 使用）
+# 用法: pandoc main.tex -o main.docx --filter pandoc-crossref --metadata-file=crossref.yaml
+figureTitle: "图"
+tableTitle: "表"
+eqnPrefix: "式"
+figPrefix: "图"
+tblPrefix: "表"
+secPrefix: "节"
+listingTitle: "代码"
+codeBlockCaptions: false
+titleDelim: " "

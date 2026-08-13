@@ -11,9 +11,32 @@
 *.fls
 *.fdb_latexmk
 
-# 项目生成物
+# 密钥（严禁入库）
 config/machine.json
+config/llm.json
+
+# 大数据（不入库，体积过大）
+高教社杯全国大学生数学建模竞赛优秀论文/
+problems/2024/E题/附件2.csv
+_ocr_tmp/
+
+# 工作流产物（output 不入库，运行时由迁移/运行脚本生成）
 problems/*/output/
+solve/*/output/
+
+# 临时/实验残留
+_tmp_*
+_tmp*/
+_a0*
+_a2*_extract*
+_ocr*
+_pdfimgs/
+_a016_*
+a2*_extract.txt
+*.xlsx.bak
+!solve/**/附件/**
+!problems/**/附件/**
+.downloads/
 
 # Python
 __pycache__/

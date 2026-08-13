@@ -1,0 +1,5 @@
+product,machine1_rate,machine2_rate,machine3_rate,unit_cost
+P1,4,3,2,8
+P2,3,4,2,10
+P3,2,3,4,12
+P4,3,2,3,9

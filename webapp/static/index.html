@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>傻瓜建模 · 数学建模全流程自动化</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">🧮 <b>傻瓜建模</b><span class="sub">CUMCM 全流程自动化</span></div>
+  <div class="topbar-right">
+    <button id="btnConfig" class="btn ghost">⚙ LLM 配置</button>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- 左侧：新建 + 任务列表 -->
+  <aside class="sidebar">
+    <section class="panel">
+      <h3>新建任务</h3>
+      <input id="taskName" class="input" placeholder="任务名（可留空，用题面文件名）" maxlength="64">
+      <div class="drop" id="drop">
+        <div class="drop-hint">拖拽题面 + 数据文件到此处<br>或 <label class="link">选择文件<input type="file" id="fileInput" multiple hidden></label></div>
+        <div class="file-list" id="fileList"></div>
+      </div>
+      <button id="btnCreate" class="btn primary block">创建任务</button>
+    </section>
+
+    <section class="panel">
+      <h3>任务列表</h3>
+      <div id="taskList" class="task-list"></div>
+    </section>
+  </aside>
+
+  <!-- 主区：任务详情 -->
+  <main class="main">
+    <div id="emptyState" class="empty">
+      <div>👈 左侧新建任务并点击「开始」，全流程自动跑完六阶段，产出论文 PDF。</div>
+      <div class="hint">需先在上方 ⚙ 配置 LLM（OpenAI 兼容接口：base_url / api_key / model）。</div>
+    </div>
+
+    <div id="taskDetail" class="detail hidden">
+      <div class="detail-head">
+        <h2 id="detailTitle">任务</h2>
+        <div class="detail-actions">
+          <button id="btnRun" class="btn primary">▶ 开始全流程</button>
+          <button id="btnRerunP1" class="btn ghost">从 P1 重跑</button>
+        </div>
+      </div>
+      <div id="detailStatus" class="status-line"></div>
+
+      <div class="stage-timeline" id="stageTimeline"></div>
+
+      <section class="panel team-panel">
+        <h3>🤝 团队协作</h3>
+        <div id="teamGrid" class="team-grid"></div>
+      </section>
+
+      <div class="grid">
+        <section class="panel logs-panel">
+          <h3>实时日志</h3>
+          <div id="logBox" class="log-box"></div>
+        </section>
+
+        <section class="panel artifacts-panel">
+          <h3>产物浏览</h3>
+          <div id="artifactTree" class="artifact-tree"></div>
+          <div id="fileViewer" class="file-viewer hidden"></div>
+        </section>
+      </div>
+
+      <section class="panel paper-panel">
+        <div class="paper-head">
+          <h3>论文下载</h3>
+          <div class="paper-dl-btns">
+            <button id="btnWord" class="btn ghost" disabled>📥 下载 Word</button>
+          </div>
+        </div>
+        <iframe id="paperFrame" class="paper-frame" src="about:blank"></iframe>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- LLM 配置弹窗 -->
+<div id="configModal" class="modal hidden">
+  <div class="modal-box">
+    <h3>LLM 配置（OpenAI 兼容）</h3>
+    <label>Base URL
+      <input id="cfgBaseUrl" class="input" placeholder="https://api.deepseek.com/v1">
+    </label>
+    <label>API Key
+      <input id="cfgApiKey" class="input" type="password" placeholder="sk-...">
+    </label>
+    <label>模型
+      <input id="cfgModel" class="input" placeholder="deepseek-chat">
+    </label>
+    <label>Temperature
+      <input id="cfgTemp" class="input" type="number" step="0.1" min="0" max="1">
+    </label>
+    <label>角色模型（留空用全局模型；全流程可用 deepseek-chat / deepseek-reasoner 组合）
+      <div class="role-models">
+        <div class="rm-row"><span>📐 建模手</span><input id="cfgRoleModeler" class="input" placeholder="deepseek-chat"></div>
+        <div class="rm-row"><span>💻 代码手</span><input id="cfgRoleCoder" class="input" placeholder="deepseek-chat"></div>
+        <div class="rm-row"><span>✍️ 论文手</span><input id="cfgRoleWriter" class="input" placeholder="deepseek-chat"></div>
+      </div>
+    </label>
+    <div class="modal-actions">
+      <button id="btnTestCfg" class="btn ghost">测试连通</button>
+      <span id="cfgTestMsg" class="cfg-msg"></span>
+      <span class="spacer"></span>
+      <button id="btnSaveCfg" class="btn primary">保存</button>
+      <button id="btnCloseCfg" class="btn ghost">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

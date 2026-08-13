@@ -3,6 +3,7 @@
     "PYTHON_EXE": "D:\\Jupyter code\\math_work\\.venv\\Scripts\\python.exe",
     "LATEXMK_EXE": "D:\\MiKTeX\\miktex\\bin\\x64\\latexmk.exe",
     "XELATEX_EXE": "D:\\MiKTeX\\miktex\\bin\\x64\\xelatex.exe",
+    "PANDOC_EXE": "C:\\Users\\14344\\AppData\\Local\\Pandoc\\pandoc.exe",
     "PYTHONIOENCODING": "utf-8"
   }
 }

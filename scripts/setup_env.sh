@@ -23,7 +23,7 @@ else
 fi
 
 echo "==> 安装完整科学计算栈 ..."
-"$VENV_PY" -m pip install numpy pandas scipy matplotlib sympy scikit-learn python-docx ortools==9.15.6755 PyMuPDF
+"$VENV_PY" -m pip install numpy pandas scipy matplotlib sympy scikit-learn python-docx ortools==9.15.6755 PyMuPDF pdf2docx
 
 echo "==> 自检（验证无 DLL 冲突，任意 import 顺序）..."
 "$VENV_PY" -c "

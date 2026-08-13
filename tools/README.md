@@ -8,6 +8,7 @@
 | `eval_metrics.py` | MAE / RMSE / MAPE / R² | `from eval_metrics import metrics_report; metrics_report(y, yhat)` |
 | `preprocess.py` | CSV/Excel 数据 EDA 报告 | `$PYTHON_EXE preprocess.py data.csv [--out rep.md]` |
 | `sensitivity.py` | 单变量 OAT 灵敏度分析 + tornado | `$PYTHON_EXE sensitivity.py --func mymod:obj --base base.json` |
+| `generate_docx.py` | 完整版 Word：pandoc 转 main.tex → main.docx（公式原生可编辑 OMML、图/表带编号引用） | `$PYTHON_EXE generate_docx.py <task_dir>`（依赖 pandoc，见 `config/machine.json` 的 `PANDOC_EXE`） |
 
 ## sensitivity.py 示例
 
