@@ -110,3 +110,7 @@ solve/<赛题名>/output/
 - 使用生成式 AI 辅助竞赛须按国赛规定在论文中**如实声明**（见 skill 的 `references/ai-usage-compliance.md`）
 - 论文所有数值必须来自实际运行的代码（证据门禁保证），禁止编造
 - 本工作流定位为**人机协作**：核心建模思路由你主导，AI 负责加速实现
+
+---
+
+*本项目工作流由 **Claude Code（Anthropic）** 辅助搭建与优化。*
