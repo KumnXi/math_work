@@ -53,6 +53,9 @@ implementation, while modeling decisions stay with the user.
   <img src="docs/images/evidence_gate.png" alt="证据门禁示意图" width="700">
 </p>
 
+<!-- 🎬 证据门禁 30s demo gif：录制完成后放 docs/demo/evidence-gate-30s.gif 并取消下一行注释即生效；未录制前请保持注释，避免死链 -->
+<!-- ![Evidence Gate demo](docs/demo/evidence-gate-30s.gif) -->
+
 ---
 
 ## 🚀 快速开始（5 步）
