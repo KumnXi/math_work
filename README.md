@@ -18,18 +18,34 @@
 
 </div>
 
+## Abstract
+
+**Math-Modeling Workflow** is an AI-assisted, six-phase pipeline for producing
+contest-grade mathematical modeling papers: **read → model → solve → visualize →
+paper → verify**. Its defining mechanism is the **Evidence Gate**: every artifact
+produced in each phase is hashed with SHA-256 and recorded in an append-only run
+manifest (`run_manifest.json`) together with the exact command and exit code that
+created it. Before any phase advances, the pipeline re-hashes the previous phase's
+outputs and compares them against the manifest; any mismatch — a hand-edited
+number, a regenerated figure, a replaced result file — fails the gate and blocks
+advancement. This makes fabrication structurally impossible rather than merely
+discouraged: **no gate, no progress**. In the age of generative AI, where models
+can convincingly invent plausible numbers, traceability is what keeps an
+AI-assisted paper honest. The workflow is human-in-the-loop: the AI accelerates
+implementation, while modeling decisions stay with the user.
+
 ---
 
 ## 🚨 新手必读：先看这里，能省 3 小时
 
-> 这台机器上有几条**铁律**，违反任何一条都会卡住你。项目已内置防护，但你要知道为什么。
+> 这套流程里有几条**铁律**，违反任何一条都会卡住你。项目已内置防护，但你要知道为什么。
 
 | 铁律 | 说明 |
 |---|---|
-| 🚫 **不要用裸 `python`** | 本机 PATH 里的 `python` 是 **Windows Store 假别名**，会弹商店或直接失败。**一律用 `$PYTHON_EXE`**（项目已配置指向 `.venv`）。 |
-| 🚫 **路径含空格，命令必须双引号** | 项目路径是 `D:\Jupyter code\math_work`（**有空格**）。shell 命令里路径一律 `"..."` 包裹。 |
+| 🚫 **不要用裸 `python`** | Windows 上 PATH 里的 `python` 可能是 **Store 假别名**，会弹商店或直接失败。**一律用 `$PYTHON_EXE`**（项目已配置指向 `.venv`）。 |
+| 🚫 **路径含空格，命令必须双引号** | 若项目放在含空格的目录（Windows 常见，本项目历史上即如此），shell 命令里路径一律 `"..."` 包裹。 |
 | 🚫 **装包只装进 `.venv`** | Anaconda 的 site-packages **不可写**，装不进去。依赖一律走项目虚拟环境：`bash scripts/setup_env.sh`。 |
-| 🚫 **`problems/` 是只读存档区** | 只放赛题 + 附件。**一切产出必须落在 `solve/<赛题名>/` 下**，开工前先迁移（见快速开始 ③）。 |
+| 🚫 **`problems/` 是只读存档区** | 只放赛题 + 附件。**一切产出必须落在 `solve/<赛题名>/` 下**，开工前先迁移（见快速开始 ④）。 |
 | ⚠️ **控制台是 GBK 编码** | Python 输出中文乱码时，用 `PYTHONIOENCODING=utf-8`（项目已默认配置）。 |
 | 🔒 **禁止编造任何数值** | 论文里的每个数字都必须能溯源到 `run_manifest.json` 的真实运行记录。**证据门禁**用哈希校验拦截一切手工改动。 |
 
@@ -37,14 +53,26 @@
   <img src="docs/images/evidence_gate.png" alt="证据门禁示意图" width="700">
 </p>
 
+<!-- 🎬 证据门禁 30s demo gif：录制完成后放 docs/demo/evidence-gate-30s.gif 并取消下一行注释即生效；未录制前请保持注释，避免死链 -->
+<!-- ![Evidence Gate demo](docs/demo/evidence-gate-30s.gif) -->
+
 ---
 
-## 🚀 快速开始（4 步）
+## 🚀 快速开始（5 步）
 
-### ① 初始化（一次性）
+### ① 克隆仓库
 
 ```bash
-cd "D:\Jupyter code\math_work"
+git clone <repo-url> <project-root>
+cd <project-root>
+```
+
+> 以下路径示例中，`<project-root>` 指仓库所在目录；若它含空格，shell 命令一律用双引号包裹。
+
+### ② 初始化（一次性）
+
+```bash
+cd <project-root>
 bash scripts/setup_env.sh      # 装 Python 依赖（ortools、PyMuPDF）
 bash scripts/init_project.sh   # 克隆 CUMCMThesis 模板、生成 config/machine.json
 bash scripts/first_compile.sh  # 预热 LaTeX 模板（首次需联网装宏包）
@@ -52,14 +80,14 @@ bash scripts/first_compile.sh  # 预热 LaTeX 模板（首次需联网装宏包�
 
 > 💡 `config/machine.json`（机器路径）由 init 生成，**已 gitignore 不入库**；克隆仓库后第一次使用必须先跑上面的初始化。
 
-### ② 放入赛题
+### ③ 放入赛题
 
 在 `problems/` 下新建一个文件夹，放入：
 
 - **赛题文件**：`*.pdf` / `*.docx`（无文本层的扫描版 PDF 需另附文本）
 - **数据文件**：`*.csv` / `*.xlsx` / `*.txt`
 
-### ③ 迁移到工作区
+### ④ 迁移到工作区
 
 所有解题工作都在 `solve/<题名>/` 进行，先复制题目过去：
 
@@ -68,7 +96,7 @@ bash scripts/first_compile.sh  # 预热 LaTeX 模板（首次需联网装宏包�
 # 若 problems/ 侧有历史遗留 output/，加 --move-output 一并搬走
 ```
 
-### ④ 跑全流程
+### ⑤ 跑全流程
 
 在项目根目录启动 `claude`，然后说：
 
@@ -77,6 +105,8 @@ bash scripts/first_compile.sh  # 预热 LaTeX 模板（首次需联网装宏包�
 ```
 
 工作流会先做环境自检，再按六阶段流水线推进，**每个关键节点暂停征求你的确认**（读题理解、模型假设、关键结果、论文审阅）。
+
+> 💡 **可复现性确认**：`git clone` → `bash scripts/setup_env.sh` → `bash scripts/init_project.sh` → `bash scripts/first_compile.sh` → 对内置 demo（`solve/demo-cumcm`）跑全流程，即可在全新环境完整复现（见下方「端到端验证」）；demo 题目如需重新生成可先跑 `make_demo.py`。
 
 ---
 
