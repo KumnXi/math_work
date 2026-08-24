@@ -14,7 +14,7 @@
 | # | 步骤 | 命令 | 说明 |
 |---|---|---|---|
 | 1 | 环境自检 | `"$PYTHON_EXE" .claude/skills/math-modeling-workflow/scripts/verify_manifest.py --env` | 全部 `[OK]` 才继续。`$PYTHON_EXE` 指向 `.venv/Scripts/python.exe`（见 `.claude/settings.json` env / `config/machine.json`），**禁止裸 `python`**。 |
-| 2 | 重新生成 demo 题 | `"$PYTHON_EXE" .claude/skills/math-modeling-workflow/scripts/make_demo.py` | 生成 `solve/demo-cumcm/` 题目与 `output/`（若已有且干净可跳过）。 |
+| 2 | 重新生成 demo 题 | `"$PYTHON_EXE" .claude/skills/math-modeling-workflow/scripts/make_demo.py` | 只生成 `problems/demo-cumcm/` 题目（statement.docx + 3 个附件）；`solve/` 侧靠 `"$PYTHON_EXE" scripts/migrate_to_solve.py problems/demo-cumcm` 迁移、`output/` 靠跑全流程产生（若已有且干净可跳过）。 |
 | 3 | 跑 P1–P3 | 在项目根启动 `claude`，对 `solve/demo-cumcm` 按 `math-modeling-workflow` 跑全流程到 P3 结束（HIL 确认处直接继续） | 确保 `output/code/result_q1.json` 等产物已生成。 |
 | 4 | P3 证据入账 | `"$PYTHON_EXE" .claude/skills/math-modeling-workflow/scripts/make_manifest.py record solve/demo-cumcm P3 --inputs statement.docx,attachment1_demand.csv,attachment2_params.csv,attachment3_history.csv --outputs code/solve_q1.py,code/result_q1.json,code/result_q1.txt --cmd "<求解器的完整运行命令>" --exit-code 0` | 若全流程已自动 record 可跳过。注意 `--outputs` 是相对 `output/` 的路径。 |
 | 5 | 预演确认 Gate PASS | `"$PYTHON_EXE" .claude/skills/math-modeling-workflow/scripts/verify_manifest.py gate solve/demo-cumcm P4` | 应输出 `[gate] P3 产物校验通过，可推进到 P4`，退出码 0。 |
@@ -37,14 +37,17 @@
 
 ```bash
 # ① P3 求解（画面停留在结果 JSON，突出关键数值）
-"$PYTHON_EXE" code/solve_q1.py          # 工作目录：solve/demo-cumcm/output
-cat code/result_q1.json                 # 展示 total_cost 等关键指标
+#    全部命令在项目根执行（不 cd），脚本与产物路径均以项目根为基准
+"$PYTHON_EXE" solve/demo-cumcm/output/code/solve_q1.py
+cat solve/demo-cumcm/output/code/result_q1.json        # 展示 total_cost 等关键指标
+# ⚠️ ① 重跑求解会改变 result_q1.json 的 hash：② 的 manifest 记录必须同步执行，
+#    否则 manifest 仍是旧 hash、④ 会意外 FAIL（录前准备允许跳过 ②，录制时不可跳）
 
 # ② 证据入账
-"$PYTHON_EXE" ../../../.claude/skills/math-modeling-workflow/scripts/make_manifest.py record solve/demo-cumcm P3 \
+"$PYTHON_EXE" .claude/skills/math-modeling-workflow/scripts/make_manifest.py record solve/demo-cumcm P3 \
   --inputs statement.docx,attachment1_demand.csv,attachment2_params.csv,attachment3_history.csv \
   --outputs code/solve_q1.py,code/result_q1.json,code/result_q1.txt \
-  --cmd "$PYTHON_EXE code/solve_q1.py" --exit-code 0
+  --cmd "$PYTHON_EXE solve/demo-cumcm/output/code/solve_q1.py" --exit-code 0
 # 预期输出：[manifest] P3 已记录 3 个产物到 run_manifest.json
 
 # ③ 打开 run_manifest.json 扫一眼哈希（可切编辑器窗口 1–2 秒）
